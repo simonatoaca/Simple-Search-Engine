@@ -3,7 +3,7 @@
 
 #define MAX_STRING_SIZE	256
 #define HMAX 21
-#include "LinkedList.h"
+#include "linked_list.h"
 
 typedef struct info info;
 struct info {

@@ -1,9 +1,9 @@
 #include "search_utils.h"
 #include "search_engine.h"
 
-unsigned int get_doc_count(char *path)
+char **get_doc_count_and_names(char *path, int *doc_count)
 {
-	unsigned int doc_count = 0;
+	char **doc_names = NULL;
 	DIR *directory = NULL;
 	struct dirent *entry;
 
@@ -11,12 +11,13 @@ unsigned int get_doc_count(char *path)
 
 	if (directory)
 		while ((entry = readdir(directory)) != NULL)
-			if (entry->d_type == DT_REG)
-				doc_count++;
+			if (entry->d_type == DT_REG) {
+				doc_names = realloc(doc_names, (++(*doc_count)) * sizeof(char *));
+				doc_names[*doc_count - 1] = strdup(entry->d_name);
+			}
 
 	closedir(directory);
-
-	return doc_count;
+	return doc_names;
 }
 
 int search_word(char *string, char *word)
@@ -26,16 +27,15 @@ int search_word(char *string, char *word)
 	return 0;
 }
 
-int *search_in_docs(char *word, char *path, int doc_count)
+int *search_in_docs(char *word, char *path, int doc_count, char **doc_names)
 {
 	int *index = calloc(doc_count, sizeof(int));
-	char file_path[WORD_LEN];
+	char file_path[BUF_SIZE];
 	char *buffer = malloc(BUF_SIZE * sizeof(char)); 
 
 	// Searches for <word> in every file
 	for (int i = 0; i < doc_count; i++) {
-		sprintf(file_path, i < 9 ? "%s/doc0%d.txt" :  "%s/doc%d.txt",
-				path, i + 1);
+		sprintf(file_path, "%s/%s", path, doc_names[i]);
 
 		FILE *in = fopen(file_path, "r");
 
@@ -61,9 +61,10 @@ char **make_postfix(char *query, int *wd_count)
 {
 	char **postfix_query = malloc(MAX_WORDS * sizeof(char *));
 
-	stack_t *st = st_create(WORD_LEN * sizeof(char));
+	stack_tt *st = st_create(WORD_LEN * sizeof(char));
 
-	char *word = strtok(query, " ");
+	char *aux_query = strdup(query);
+	char *word = strtok(aux_query, " ");
 	int count = 0;
 
 	// Transforms the query into a postfix expression
@@ -115,19 +116,19 @@ char **make_postfix(char *query, int *wd_count)
 	}
 
 	st_free(st);
+	free(aux_query);
 	*wd_count = count;
 	return postfix_query;
 }
 
-void perform_search(char *word, char *path, int doc_count, hashtable_t *ht)
+void perform_search(char *word, char *path, int doc_count,
+					char **doc_names, hashtable_t *ht)
 {
 	if (strcmp(word, "||") || strcmp(word, "&&") || strcmp(word, "!")) {
-		// Add word's inverted index to the hashtable if it isn't already there
-		if (!ht_has_key(ht, word)) {
-			inverted_index inv_idx = {search_in_docs(word, path, doc_count)};
+		// Add/update the word's inverted index in the hashtable
+		inverted_index inv_idx = {search_in_docs(word, path, doc_count, doc_names)};
 
-			ht_put(ht, word, strlen(word) + 1, &inv_idx, sizeof(inv_idx));
-		}
+		ht_put(ht, word, strlen(word) + 1, &inv_idx, sizeof(inv_idx));
 	}
 }
 
@@ -149,7 +150,7 @@ int *operation_on_vector(int *v1, int *v2, int size, char *operation)
 
 int *evaluate_expression(char **query, hashtable_t *ht, int wd_count, int doc_count)
 {
-	stack_t *st = st_create(sizeof(int *));
+	stack_tt *st = st_create(sizeof(int *));
 
 	for (int i = 0; i < wd_count; i++) {
 		if (strcmp(query[i], "&&") && strcmp(query[i], "||") && strcmp(query[i], "!")) {

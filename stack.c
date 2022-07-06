@@ -2,20 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include "utils.h"
-#include "LinkedList.h"
+#include "stack.h"
 #define MAX_STRING_SIZE	256
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 
-
-typedef struct stack_t stack_t;
-struct stack_t
+stack_tt *st_create(unsigned int data_size)
 {
-	struct linked_list_t *list;
-};
-
-stack_t *st_create(unsigned int data_size)
-{
-	stack_t *st = malloc(sizeof(*st));
+	stack_tt *st = malloc(sizeof(*st));
 	DIE(!st, "Failed stack allocation\n");
 	st->list = ll_create(data_size);
 	if (!st->list) {
@@ -31,7 +24,7 @@ stack_t *st_create(unsigned int data_size)
  * Functia intoarce numarul de elemente din stiva al carei pointer este trimis
  * ca parametru.
  */
-unsigned int st_get_size(stack_t *st)
+unsigned int st_get_size(stack_tt *st)
 {
 	DIE(!st, "The stack does not exist.\n");
 	if (!st->list) {
@@ -52,7 +45,7 @@ unsigned int st_get_size(stack_t *st)
  * Functia intoarce 1 daca stiva al carei pointer este trimis
  * ca parametru este goala si 0 in caz contrar.
  */
-unsigned int st_is_empty(stack_t *st)
+unsigned int st_is_empty(stack_tt *st)
 {
 	DIE(!st, "The stack does not exist.\n");
 	if (!st_get_size(st))
@@ -64,7 +57,7 @@ unsigned int st_is_empty(stack_t *st)
  * Functia intoarce elementul din vârful stivei al carei pointer este trimis
  * ca parametru fără a efectua nicio modificare asupra acesteia.
  */
-void *st_peek(stack_t *st)
+void *st_peek(stack_tt *st)
 {
 	DIE(!st, "The stack does not exist.\n");
 	if (!st_get_size(st)) {
@@ -80,7 +73,7 @@ void *st_peek(stack_t *st)
  * ca parametru. Atentie! Este responsabilitatea acestei functii de a elibera
  * memoria pentru elementul eliminat.
  */
-void st_pop(stack_t *st)
+void st_pop(stack_tt *st)
 {
 	DIE(!st, "The stack does not exist.\n");
 	if (st_get_size(st)) {
@@ -94,7 +87,7 @@ void st_pop(stack_t *st)
  * Pe baza datelor trimise prin pointerul new_data, se adauga un nou element in
  * vârful stivei al carei pointer este trimis ca parametru.
  */
-void st_push(stack_t *st, void *new_data)
+void st_push(stack_tt *st, void *new_data)
 {
 	DIE(!st, "The stack does not exist\n");
 	if (!new_data) {
@@ -108,7 +101,7 @@ void st_push(stack_t *st, void *new_data)
  * Functia elimina toate elementele stivei al carei pointer este trimis
  * ca parametru.
  */
-void st_clear(stack_t *st)
+void st_clear(stack_tt *st)
 {
 	DIE(!st, "The stack does not exist\n");
 
@@ -122,7 +115,7 @@ void st_clear(stack_t *st)
  * Functia elibereaza memoria folosita de toate elementele, iar la
  * sfarsit elibereaza memoria folosita de structura stivei.
  */
-void st_free(stack_t *st)
+void st_free(stack_tt *st)
 {
 	DIE(!st, "The stack does not exist\n");
 	st_clear(st);

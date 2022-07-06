@@ -2,10 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "utils.h"
-#include "LinkedList.h"
-#include "search_engine.h"
-#include "Hashtable.h"
 
+#include "search_engine.h"
+#include "hashtable.h"
 
 /*
  * Functii de comparare a cheilor:
